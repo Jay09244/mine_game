@@ -3,29 +3,35 @@ import pygame
 
 from config import LARGURA, ALTURA
 from entidades import (
-    Jogador, Tiro, RoboZigueZague, RoboTanque, RoboAtirador
+    Jogador, Tiro, RoboZigueZague, RoboTanque, RoboAtirador, PowerUp
 )
+
 
 class Jogo:
     def __init__(self):
         self.todos_sprites = pygame.sprite.Group()
         self.inimigos = pygame.sprite.Group()
         self.tiros = pygame.sprite.Group()
-        self.tiros_inimigos = pygame.sprite.Group() # Novo grupo de tiros
+        self.tiros_inimigos = pygame.sprite.Group()
+        self.powerups = pygame.sprite.Group()
 
         self.jogador = None
         self.pontos = 0
         self.spawn_timer = 0
         self.intervalo_spawn = 40
-        self.estado = "JOGANDO"
+        self.cadencia_tiro_timer = 0
+        self.estado = "MENU"
 
+    def iniciar_partida(self):
         self.reiniciar()
+        self.estado = "JOGANDO"
 
     def reiniciar(self):
         self.todos_sprites.empty()
         self.inimigos.empty()
         self.tiros.empty()
         self.tiros_inimigos.empty()
+        self.powerups.empty()
 
         self.jogador = Jogador(LARGURA // 2, ALTURA - 60)
         self.todos_sprites.add(self.jogador)
@@ -33,12 +39,51 @@ class Jogo:
         self.pontos = 0
         self.spawn_timer = 0
         self.intervalo_spawn = 40
-        self.estado = "JOGANDO"
+        self.cadencia_tiro_timer = 0
 
     def atirar(self, pos_alvo):
-        tiro = Tiro(self.jogador.rect.centerx, self.jogador.rect.centery, pos_alvo)
-        self.todos_sprites.add(tiro)
-        self.tiros.add(tiro)
+        delay_necessario = 5 if self.jogador.tempo_tiro_rapido > 0 else 15
+        if self.cadencia_tiro_timer < delay_necessario:
+            return
+
+        self.cadencia_tiro_timer = 0
+
+        if self.jogador.tempo_tiro_triplo > 0:
+            offsets = [-20, 0, 20]
+            for offset in offsets:
+                alvo_offset = (pos_alvo[0] + offset, pos_alvo[1])
+                tiro = Tiro(self.jogador.rect.centerx, self.jogador.rect.centery, alvo_offset)
+                self.todos_sprites.add(tiro)
+                self.tiros.add(tiro)
+        else:
+            tiro = Tiro(self.jogador.rect.centerx, self.jogador.rect.centery, pos_alvo)
+            self.todos_sprites.add(tiro)
+            self.tiros.add(tiro)
+
+    def _tentar_dropar_powerup(self, inimigo):
+        chances = random.random()
+
+        if isinstance(inimigo, RoboZigueZague):
+            if chances < 0.25:
+                p = PowerUp(inimigo.rect.centerx, inimigo.rect.centery, "vida")
+                self.todos_sprites.add(p)
+                self.powerups.add(p)
+
+        elif isinstance(inimigo, RoboAtirador):
+            if chances < 0.20:
+                p = PowerUp(inimigo.rect.centerx, inimigo.rect.centery, "tiro_triplo")
+                self.todos_sprites.add(p)
+                self.powerups.add(p)
+            elif chances < 0.40:
+                p = PowerUp(inimigo.rect.centerx, inimigo.rect.centery, "tiro_rapido")
+                self.todos_sprites.add(p)
+                self.powerups.add(p)
+
+        elif isinstance(inimigo, RoboTanque):
+            if chances < 0.30:
+                p = PowerUp(inimigo.rect.centerx, inimigo.rect.centery, "escudo")
+                self.todos_sprites.add(p)
+                self.powerups.add(p)
 
     def _spawnar_inimigos(self):
         self.spawn_timer += 1
@@ -46,7 +91,6 @@ class Jogo:
             x_aleatorio = random.randint(40, LARGURA - 40)
             y_aleatorio = random.randint(-80, -40)
 
-            # Sorteia qual tipo de robô será criado
             tipo_robo = random.choice(["zigue_zague", "tanque", "atirador"])
 
             if tipo_robo == "zigue_zague":
@@ -63,38 +107,45 @@ class Jogo:
             self.intervalo_spawn = random.randint(20, 60)
 
     def _processar_ataques_inimigos(self):
-            # Passa a posição atual do jogador para os robôs atiradores
-            if self.jogador:
-                pos_jogador = self.jogador.rect.center
-                for inimigo in self.inimigos:
-                    if isinstance(inimigo, RoboAtirador):
-                        novo_tiro = inimigo.tentar_atirar(pos_jogador)
-                        if novo_tiro:
-                            self.todos_sprites.add(novo_tiro)
-                            self.tiros_inimigos.add(novo_tiro)
+        if self.jogador:
+            pos_jogador = self.jogador.rect.center
+            for inimigo in self.inimigos:
+                if isinstance(inimigo, RoboAtirador):
+                    novo_tiro = inimigo.tentar_atirar(pos_jogador)
+                    if novo_tiro:
+                        self.todos_sprites.add(novo_tiro)
+                        self.tiros_inimigos.add(novo_tiro)
 
     def _verificar_colisoes(self):
-        # 1. Colisão: Tiro do Jogador x Inimigos
         colisoes = pygame.sprite.groupcollide(self.inimigos, self.tiros, False, True)
         for inimigo, lista_tiros in colisoes.items():
-            inimigo.vida -= len(lista_tiros) # Subtrai a vida baseada nos tiros recebidos
+            inimigo.vida -= len(lista_tiros)
             if inimigo.vida <= 0:
+                self._tentar_dropar_powerup(inimigo)
                 inimigo.kill()
                 self.pontos += 1
 
-        # 2. Colisão: Robô x Jogador
         if pygame.sprite.spritecollide(self.jogador, self.inimigos, True):
-            self.jogador.vida -= 1
-            if self.jogador.vida <= 0:
+            if self.jogador.levar_dano():
                 self.estado = "GAME_OVER"
 
-        # 3. Colisão: Tiro Inimigo x Jogador
         if pygame.sprite.spritecollide(self.jogador, self.tiros_inimigos, True):
-            self.jogador.vida -= 1
-            if self.jogador.vida <= 0:
+            if self.jogador.levar_dano():
                 self.estado = "GAME_OVER"
+
+        powerups_coletados = pygame.sprite.spritecollide(self.jogador, self.powerups, True)
+        for p in powerups_coletados:
+            if p.tipo == "vida":
+                self.jogador.vida += 1
+            elif p.tipo == "tiro_triplo":
+                self.jogador.tempo_tiro_triplo = 300
+            elif p.tipo == "tiro_rapido":
+                self.jogador.tempo_tiro_rapido = 300
+            elif p.tipo == "escudo":
+                self.jogador.tem_escudo = True
 
     def atualizar(self):
+        self.cadencia_tiro_timer += 1
         self._spawnar_inimigos()
         self._processar_ataques_inimigos()
         self._verificar_colisoes()
