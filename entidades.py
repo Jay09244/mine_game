@@ -1,10 +1,32 @@
-#Entidades concretas do jogo (Jogador, Tiro, Robôs).
-
 import pygame
 
-from config import LARGURA, ALTURA, VERDE, VERMELHO, AMARELO, AZUL_CLARO, LARANJA, ROXO
+from config import (
+    LARGURA, ALTURA, VERDE, VERMELHO, AMARELO, ROXO, LARANJA, 
+    AZUL_CLARO, ROSA, CIANO, DOURADO, AZUL_ESC
+)
 from sprites import Entidade
-import random
+
+
+# POWER-UP
+class PowerUp(Entidade):
+    def __init__(self, x, y, tipo):
+        super().__init__(x, y, velocidade=2)
+        self.tipo = tipo
+        self.image = pygame.Surface((16, 16))
+
+        if tipo == "vida":
+            self.image.fill(ROSA)
+        elif tipo == "tiro_triplo":
+            self.image.fill(CIANO)
+        elif tipo == "tiro_rapido":
+            self.image.fill(DOURADO)
+        elif tipo == "escudo":
+            self.image.fill(AZUL_ESC)
+
+    def update(self):
+        self.rect.y += self.velocidade
+        if self.rect.y > ALTURA:
+            self.kill()
 
 
 # JOGADOR
@@ -13,6 +35,9 @@ class Jogador(Entidade):
         super().__init__(x, y, 5)
         self.image.fill(VERDE)
         self.vida = 5
+        self.tem_escudo = False
+        self.tempo_tiro_triplo = 0
+        self.tempo_tiro_rapido = 0
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -26,12 +51,24 @@ class Jogador(Entidade):
         if keys[pygame.K_d]:
             self.mover(self.velocidade, 0)
 
+        if self.tempo_tiro_triplo > 0:
+            self.tempo_tiro_triplo -= 1
+        if self.tempo_tiro_rapido > 0:
+            self.tempo_tiro_rapido -= 1
+
         # limites de tela
         self.rect.x = max(0, min(self.rect.x, LARGURA - 40))
         self.rect.y = max(0, min(self.rect.y, ALTURA - 40))
 
+    def levar_dano(self):
+        if self.tem_escudo:
+            self.tem_escudo = False
+            return False
+        self.vida -= 1
+        return self.vida <= 0
 
-# TIRO DIRECIONAL DO PLAYER
+
+# TIRO DO JOGADOR
 class Tiro(Entidade):
     def __init__(self, x, y, alvo_pos):
         super().__init__(x, y, 12)
@@ -54,6 +91,8 @@ class Tiro(Entidade):
                 self.rect.bottom < 0 or self.rect.top > ALTURA):
             self.kill()
 
+
+# TIRO DO INIMIGO
 class TiroInimigo(Entidade):
     def __init__(self, x, y, alvo_pos):
         super().__init__(x, y, velocidade=5)
@@ -62,7 +101,6 @@ class TiroInimigo(Entidade):
         self.pos = pygame.math.Vector2(x, y)
         self.rect = self.image.get_rect(center=(x, y))
 
-        # Calcula o vetor de direção até o jogador
         direcao = pygame.math.Vector2(alvo_pos) - self.pos
         if direcao.length() > 0:
             self.direcao = direcao.normalize()
@@ -89,7 +127,7 @@ class Robo(Entidade):
         raise NotImplementedError
 
 
-# 1. ROBO ZIGUEZAGUE (Cor: Vermelho, 1 tiro)
+# ROBO 1: ZigueZague
 class RoboZigueZague(Robo):
     def __init__(self, x, y):
         super().__init__(x, y, velocidade=3, vida=1)
@@ -108,10 +146,10 @@ class RoboZigueZague(Robo):
             self.kill()
 
 
-# 2. ROBO TANQUE (Cor: Roxo, 3 tiros)
+# ROBO 2: Tanque (3 de vida)
 class RoboTanque(Robo):
     def __init__(self, x, y):
-        super().__init__(x, y, velocidade=1, vida=3)  # Mais lento, porém mais vida
+        super().__init__(x, y, velocidade=1, vida=3)
         self.image.fill(ROXO)
 
     def update(self):
@@ -120,7 +158,7 @@ class RoboTanque(Robo):
             self.kill()
 
 
-# 3. ROBO ATIRADOR (Cor: Laranja, atira no jogador)
+# ROBO 3: Atirador
 class RoboAtirador(Robo):
     def __init__(self, x, y):
         super().__init__(x, y, velocidade=2, vida=1)
