@@ -4,6 +4,7 @@ import pygame
 
 from config import LARGURA, ALTURA, VERDE, VERMELHO, AMARELO
 from sprites import Entidade
+import random
 
 
 # JOGADOR
@@ -81,3 +82,22 @@ class RoboZigueZague(Robo):
         self.atualizar_posicao()
         if self.rect.y > ALTURA:
             self.kill()
+    def _spawnar_inimigos(self):
+        self.spawn_timer += 1
+        
+        # MUDANÇA 1: O intervalo entre os spawns agora varia aleatoriamente (entre 20 e 60 frames)
+        if not hasattr(self, 'intervalo_spawn'):
+            self.intervalo_spawn = random.randint(20, 60)
+
+        if self.spawn_timer > self.intervalo_spawn:
+            # MUDANÇA 2: Posições X e Y aleatórias no topo da tela
+            x_aleatorio = random.randint(40, LARGURA - 40)
+            y_aleatorio = random.randint(-80, -40)
+            
+            robo = RoboZigueZague(x_aleatorio, y_aleatorio)
+            self.todos_sprites.add(robo)
+            self.inimigos.add(robo)
+            
+            # MUDANÇA 3: Reseta o timer e sorteia o tempo do próximo spawn
+            self.spawn_timer = 0
+            self.intervalo_spawn = random.randint(20, 60)
