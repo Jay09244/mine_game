@@ -1,6 +1,3 @@
-import pygame
-
-pygame.init()
 
 # TELA
 LARGURA = 800
