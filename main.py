@@ -52,6 +52,10 @@ def main ():
 
     tela_atual ="MENU"
 
+    pygame.mixer.music.load("Hero_immortal.mp3")
+    pygame.mixer.mudic.play(-1)
+except pygame.error:
+    pass 
 
     while rodando :
 
