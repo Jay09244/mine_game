@@ -23,17 +23,17 @@ class Jogo :
         self .estado ="MENU"
 
         try:
-            self.som_tiro = pygame.mixer.sound("som_tiro.mp3") 
-            self.som_vitoria = pygame.mixer.sound("som_vitoria.mp3")
-            self.som_derrota = pygame.mixer.sound("som_derrota.mp3")
-            self.som_nivel = pygame.mixer.sound("som_level.up.mp3")
+            self.som_tiro = pygame.mixer.sound("assets/som_tiro.mp3") 
+            self.som_vitoria = pygame.mixer.sound("assets/som_vitoria.mp3")
+            self.som_derrota = pygame.mixer.sound("assets/som_derrota.mp3")
+            self.som_nivel = pygame.mixer.sound("assets/som_level.up.mp3")
 
     def iniciar_partida (self ):
         self .reiniciar ()
         self .estado ="JOGANDO"
         
         try:
-            pygame.mixer.music.load("Having_enegy.mp3")
+            pygame.mixer.music.load("assets/Having_enegy.mp3")
             pygame.mixer.music.play(-1)
         except pygame.error:
             pass
