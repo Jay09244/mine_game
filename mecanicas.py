@@ -23,10 +23,10 @@ class Jogo :
         self .estado ="MENU"
 
         try:
-        self.som_tiro = pygame.mixer.sound("som_tiro.mp3") 
-        self.som_vitoria = pygame.mixer.sound("som_vitoria.mp3")
-        self.som_derrota = pygame.mixer.sound("som_derrota.mp3")
-        self.som_nivel = pygame.mixer.sound("som_level.up.mp3")
+            self.som_tiro = pygame.mixer.sound("som_tiro.mp3") 
+            self.som_vitoria = pygame.mixer.sound("som_vitoria.mp3")
+            self.som_derrota = pygame.mixer.sound("som_derrota.mp3")
+            self.som_nivel = pygame.mixer.sound("som_level.up.mp3")
 
     def iniciar_partida (self ):
         self .reiniciar ()
