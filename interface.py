@@ -19,7 +19,8 @@ fonte_hud = pygame.font.SysFont(None, 30)
 
 PASTA_ASSETS = os.path.join(
     os.path.dirname(__file__),
-    "assets"
+    "assets",
+    "img"
 )
 
 caminho_fundo = os.path.join(PASTA_ASSETS, "fundo_menu.png")

@@ -36,14 +36,14 @@ class Jogo:
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
 
-            self.som_tiro = pygame.mixer.Sound("assets/som_tiro.mp3")
-            pygame.mixer.Sound("assets/som_tiro.mp3")
-            pygame.mixer.Sound("assets/som_derrota.mp3")
-            pygame.mixer.Sound("assets/som_vitoria.mp3")
-            pygame.mixer.Sound("assets/som_level_up.mp3")
+            self.som_tiro = pygame.mixer.Sound("assets/sons/som_tiro.mp3")
+            pygame.mixer.Sound("assets/sons/som_tiro.mp3")
+            pygame.mixer.Sound("assets/sons/som_derrota.mp3")
+            pygame.mixer.Sound("assets/sons/som_vitoria.mp3")
+            pygame.mixer.Sound("assets/sons/som_level_up.mp3")
 
             self.som_teju = pygame.mixer.Sound(
-                "assets/morte_do_vaqueiro.mp3"
+                "assets/sons/morte_do_vaqueiro.mp3"
             )
 
         except pygame.error as e:
@@ -58,7 +58,7 @@ class Jogo:
         self.estado = "JOGANDO"
 
         try:
-            pygame.mixer.music.load("assets/Having_energy.mp3")
+            pygame.mixer.music.load("assets/sons/Having_energy.mp3")
             pygame.mixer.music.play(-1)
         except pygame.error as e:
             print(f"Não foi possível reproduzir a música: {e}")

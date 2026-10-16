@@ -50,7 +50,7 @@ def main():
     musica_morte_tocando = False
 
     try:
-        pygame.mixer.music.load("assets/Hero_immortal.mp3")
+        pygame.mixer.music.load("assets/sons/Hero_immortal.mp3")
         pygame.mixer.music.play(-1)
 
     except pygame.error:
@@ -128,7 +128,7 @@ def main():
 
                             jogo.iniciar_partida()
 
-                            pygame.mixer.music.load("assets/Having_energy.mp3")
+                            pygame.mixer.music.load("assets/sons/Having_energy.mp3")
                             pygame.mixer.music.play(-1)
 
                             musica_morte_tocando = False
@@ -170,7 +170,7 @@ def main():
                 tela_atual = "GAME_OVER"
 
                 if not musica_morte_tocando:
-                    pygame.mixer.music.load("assets/som_derrota.mp3")
+                    pygame.mixer.music.load("assets/sons/som_derrota.mp3")
                     pygame.mixer.music.play()
                     musica_morte_tocando = True
 

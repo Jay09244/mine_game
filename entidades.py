@@ -11,8 +11,9 @@ from sprites import Entidade
 PASTA_ASSETS = os.path.join(os.path.dirname(__file__), "assets")
 
 
+
 def carregar_sprite(nome, tamanho=(140, 140)):
-    caminho = os.path.join(PASTA_ASSETS, nome)
+    caminho = os.path.join(PASTA_ASSETS, "img", nome)
     imagem = pygame.image.load(caminho).convert_alpha()
     return pygame.transform.scale(imagem, tamanho)
 
