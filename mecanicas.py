@@ -8,7 +8,8 @@ from entidades import (
     RoboZigueZague,
     RoboTanque,
     RoboAtirador,
-    PowerUp
+    PowerUp,
+    Teju
 )
 
 
@@ -27,35 +28,37 @@ class Jogo:
         self.cadencia_tiro_timer = 0
         self.estado = "MENU"
 
-        # Carregamento dos sons
-        self.som_tiro = None
-        self.som_vitoria = None
-        self.som_derrota = None
-        self.som_nivel = None
+        self.teju = None
+        self.teju_apareceu = False
+        self.som_teju = None
 
         try:
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
 
-            
             self.som_tiro = pygame.mixer.Sound("assets/som_tiro.mp3")
             pygame.mixer.Sound("assets/som_tiro.mp3")
             pygame.mixer.Sound("assets/som_derrota.mp3")
             pygame.mixer.Sound("assets/som_vitoria.mp3")
             pygame.mixer.Sound("assets/som_level_up.mp3")
+
+            self.som_teju = pygame.mixer.Sound(
+                "assets/morte_do_vaqueiro.mp3"
+            )
+
         except pygame.error as e:
             print(f"Não foi possível carregar os sons: {e}")
+
+        self.som_vitoria = None
+        self.som_derrota = None
+        self.som_nivel = None
 
     def iniciar_partida(self):
         self.reiniciar()
         self.estado = "JOGANDO"
 
-
-
         try:
-
             pygame.mixer.music.load("assets/Having_energy.mp3")
-
             pygame.mixer.music.play(-1)
         except pygame.error as e:
             print(f"Não foi possível reproduzir a música: {e}")
@@ -74,6 +77,9 @@ class Jogo:
         self.spawn_timer = 0
         self.intervalo_spawn = 40
         self.cadencia_tiro_timer = 0
+
+        self.teju = None
+        self.teju_apareceu = False
 
     def atirar(self, pos_alvo):
         if self.jogador is None:
@@ -116,7 +122,6 @@ class Jogo:
             self.todos_sprites.add(tiro)
             self.tiros.add(tiro)
 
-        # Reproduz o som do tiro, se estiver disponível
         if self.som_tiro is not None:
             self.som_tiro.play()
 
@@ -161,6 +166,12 @@ class Jogo:
                 )
                 self.todos_sprites.add(p)
                 self.powerups.add(p)
+
+    def _criar_teju(self):
+        if not self.teju_apareceu:
+            self.teju = Teju()
+            self.todos_sprites.add(self.teju)
+            self.teju_apareceu = True
 
     def _spawnar_inimigos(self):
         self.spawn_timer += 1
@@ -217,7 +228,21 @@ class Jogo:
         if self.jogador is None:
             return
 
-        # Colisão dos tiros do jogador com os inimigos
+        if self.teju is not None:
+            tiros_no_teju = pygame.sprite.spritecollide(
+                self.teju,
+                self.tiros,
+                True
+            )
+
+            if tiros_no_teju:
+                self.teju.kill()
+                self.teju = None
+
+                if self.som_teju is not None:
+                    pygame.mixer.music.stop()
+                    self.som_teju.play()
+
         colisoes = pygame.sprite.groupcollide(
             self.inimigos,
             self.tiros,
@@ -233,7 +258,6 @@ class Jogo:
                 inimigo.kill()
                 self.pontos += 1
 
-        # Colisão do jogador com os inimigos
         if pygame.sprite.spritecollide(
             self.jogador,
             self.inimigos,
@@ -245,7 +269,6 @@ class Jogo:
                 if self.som_derrota is not None:
                     self.som_derrota.play()
 
-        # Colisão do jogador com tiros inimigos
         if pygame.sprite.spritecollide(
             self.jogador,
             self.tiros_inimigos,
@@ -257,7 +280,6 @@ class Jogo:
                 if self.som_derrota is not None:
                     self.som_derrota.play()
 
-        # Coleta de power-ups
         powerups_coletados = pygame.sprite.spritecollide(
             self.jogador,
             self.powerups,
@@ -282,6 +304,9 @@ class Jogo:
             return
 
         self.cadencia_tiro_timer += 1
+
+        if not self.teju_apareceu:
+            self._criar_teju()
 
         self._spawnar_inimigos()
         self._processar_ataques_inimigos()
