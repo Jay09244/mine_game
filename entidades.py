@@ -53,10 +53,6 @@ class Jogador(Entidade):
     def update(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_w]:
-            self.mover(0, -self.velocidade)
-        if keys[pygame.K_s]:
-            self.mover(0, self.velocidade)
         if keys[pygame.K_a]:
             self.mover(-self.velocidade, 0)
         if keys[pygame.K_d]:
@@ -76,6 +72,16 @@ class Jogador(Entidade):
             return False
         self.vida -= 1
         return self.vida <= 0
+
+
+class Teju(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = carregar_sprite("teju.png", (110, 70))
+        self.rect = self.image.get_rect(
+            midbottom=(LARGURA // 2 + 100, ALTURA - 20)
+        )
+        self.vida = 1
 
 
 class Tiro(Entidade):
