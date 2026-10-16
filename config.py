@@ -1,4 +1,3 @@
-
 # TELA
 LARGURA = 800
 ALTURA = 600

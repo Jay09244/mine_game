@@ -52,17 +52,18 @@ def main ():
 
     tela_atual ="MENU"
 
-try:
-    pygame.mixer.music.load("assets/Hero_immortal.mp3")
-    pygame.mixer.mudic.play(-1)
-except pygame.error:
-    pass 
+    musica_morte_tocando =False
+
+    try:
+        pygame.mixer.music.load("assets/Hero_immortal.mp3")
+        pygame.mixer.music.play(-1)
+
+    except pygame.error:
+        pass 
 
     while rodando :
 
         clock .tick (FPS )
-
-
 
         for event in pygame .event .get ():
 
@@ -71,14 +72,11 @@ except pygame.error:
                 rodando =False 
 
 
-
-
             if tela_atual =="MENU":
 
                 if event .type ==pygame .MOUSEBUTTONDOWN :
 
                     if event .button ==1 :
-
 
                         if btn_iniciar_rect .collidepoint (event .pos ):
 
@@ -103,6 +101,7 @@ except pygame.error:
                         elif btn_sair_menu_rect .collidepoint (event .pos ):
 
                             rodando =False 
+
 
             elif tela_atual =="INSTRUCOES":
 
@@ -149,6 +148,11 @@ except pygame.error:
 
                             jogo .iniciar_partida ()
 
+                            pygame.mixer.music.load("assets/Having_energy.mp3")
+                            pygame.mixer.music.play(-1)
+
+                            musica_morte_tocando =False
+
                             tela_atual ="JOGANDO"
 
 
@@ -193,6 +197,11 @@ except pygame.error:
             if jogo .estado =="GAME_OVER":
 
                 tela_atual ="GAME_OVER"
+
+                if not musica_morte_tocando:
+                    pygame.mixer.music.load("assets/som_derrota.mp3")
+                    pygame.mixer.music.play()
+                    musica_morte_tocando =True
 
 
         elif tela_atual =="GAME_OVER":
