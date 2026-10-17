@@ -1,3 +1,4 @@
+
 import pygame
 
 from config import (
@@ -49,6 +50,22 @@ def main():
 
     musica_morte_tocando = False
 
+    imagem_teju_morto = pygame.image.load(
+        "assets/img/teju_morto.png"
+    ).convert_alpha()
+
+    imagem_teju_morto = pygame.transform.scale(
+        imagem_teju_morto,
+        (200, 130)
+    )
+
+    botao_voltar_teju = pygame.Rect(
+        LARGURA // 2 - 120,
+        ALTURA // 2 + 100,
+        240,
+        50
+    )
+
     try:
         pygame.mixer.music.load("assets/sons/Hero_immortal.mp3")
         pygame.mixer.music.play(-1)
@@ -63,7 +80,6 @@ def main():
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
-
                 rodando = False
 
             if tela_atual == "MENU":
@@ -75,7 +91,7 @@ def main():
                         if btn_iniciar_rect.collidepoint(event.pos):
 
                             jogo.iniciar_partida()
-
+                            musica_morte_tocando = False
                             tela_atual = "JOGANDO"
 
                         elif btn_instrucoes_rect.collidepoint(event.pos):
@@ -112,11 +128,38 @@ def main():
 
             elif tela_atual == "JOGANDO":
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if jogo.teju_morto:
 
-                    if event.button == 1:
+                    if event.type == pygame.MOUSEBUTTONDOWN:
 
-                        jogo.atirar(event.pos)
+                        if event.button == 1:
+
+                            if botao_voltar_teju.collidepoint(event.pos):
+
+                                if jogo.canal_som_teju is not None:
+                                    jogo.canal_som_teju.stop()
+                                    jogo.canal_som_teju = None
+
+                                jogo.teju_morto = False
+
+                                try:
+                                    pygame.mixer.music.stop()
+                                    pygame.mixer.music.load(
+                                        "assets/sons/Having_energy.mp3"
+                                    )
+                                    pygame.mixer.music.play(-1)
+                                except pygame.error as e:
+                                    print(
+                                        f"Não foi possível reproduzir a música: {e}"
+                                    )
+
+                else:
+
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+
+                        if event.button == 1:
+
+                            jogo.atirar(event.pos)
 
             elif tela_atual == "GAME_OVER":
 
@@ -127,12 +170,7 @@ def main():
                         if btn_reiniciar_rect.collidepoint(event.pos):
 
                             jogo.iniciar_partida()
-
-                            pygame.mixer.music.load("assets/sons/Having_energy.mp3")
-                            pygame.mixer.music.play(-1)
-
                             musica_morte_tocando = False
-
                             tela_atual = "JOGANDO"
 
                         elif btn_sair_rect.collidepoint(event.pos):
@@ -153,7 +191,8 @@ def main():
 
         elif tela_atual == "JOGANDO":
 
-            jogo.atualizar()
+            if not jogo.teju_morto:
+                jogo.atualizar()
 
             TELA.blit(fundo_menu, (0, 0))
 
@@ -165,13 +204,130 @@ def main():
                 jogo.pontos
             )
 
+            if jogo.teju_morto:
+
+                camada = pygame.Surface(
+                    (LARGURA, ALTURA),
+                    pygame.SRCALPHA
+                )
+
+                camada.fill((0, 0, 0, 190))
+                TELA.blit(camada, (0, 0))
+
+                caixa = pygame.Rect(
+                    LARGURA // 2 - 250,
+                    ALTURA // 2 - 180,
+                    500,
+                    360
+                )
+
+                pygame.draw.rect(
+                    TELA,
+                    (25, 25, 35),
+                    caixa,
+                    border_radius=20
+                )
+
+                pygame.draw.rect(
+                    TELA,
+                    (220, 40, 40),
+                    caixa,
+                    width=4,
+                    border_radius=20
+                )
+
+                fonte_titulo = pygame.font.Font(None, 48)
+                fonte_texto = pygame.font.Font(None, 27)
+                fonte_botao = pygame.font.Font(None, 29)
+
+                titulo = fonte_titulo.render(
+                    "O TEJU MORREU!",
+                    True,
+                    (255, 70, 70)
+                )
+
+                TELA.blit(
+                    titulo,
+                    titulo.get_rect(
+                        center=(LARGURA // 2, ALTURA // 2 - 140)
+                    )
+                )
+
+                TELA.blit(
+                    imagem_teju_morto,
+                    imagem_teju_morto.get_rect(
+                        center=(LARGURA // 2, ALTURA // 2 - 45)
+                    )
+                )
+
+                mensagem = fonte_texto.render(
+                    "Voce realmente fez isso?",
+                    True,
+                    (255, 255, 255)
+                )
+
+                mensagem2 = fonte_texto.render(
+                    "O Teju nao vai esquecer essa traicao!",
+                    True,
+                    (210, 210, 220)
+                )
+
+                TELA.blit(
+                    mensagem,
+                    mensagem.get_rect(
+                        center=(LARGURA // 2, ALTURA // 2 + 35)
+                    )
+                )
+
+                TELA.blit(
+                    mensagem2,
+                    mensagem2.get_rect(
+                        center=(LARGURA // 2, ALTURA // 2 + 65)
+                    )
+                )
+
+                pygame.draw.rect(
+                    TELA,
+                    (40, 150, 90),
+                    botao_voltar_teju,
+                    border_radius=12
+                )
+
+                pygame.draw.rect(
+                    TELA,
+                    (100, 230, 150),
+                    botao_voltar_teju,
+                    width=2,
+                    border_radius=12
+                )
+
+                texto_botao = fonte_botao.render(
+                    "VOLTAR AO JOGO",
+                    True,
+                    (255, 255, 255)
+                )
+
+                TELA.blit(
+                    texto_botao,
+                    texto_botao.get_rect(
+                        center=botao_voltar_teju.center
+                    )
+                )
+
             if jogo.estado == "GAME_OVER":
 
                 tela_atual = "GAME_OVER"
 
                 if not musica_morte_tocando:
-                    pygame.mixer.music.load("assets/sons/som_derrota.mp3")
-                    pygame.mixer.music.play()
+
+                    try:
+                        pygame.mixer.music.load(
+                            "assets/sons/som_derrota.mp3"
+                        )
+                        pygame.mixer.music.play()
+                    except pygame.error:
+                        pass
+
                     musica_morte_tocando = True
 
         elif tela_atual == "GAME_OVER":
@@ -184,5 +340,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

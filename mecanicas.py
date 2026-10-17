@@ -1,3 +1,4 @@
+
 import random
 import pygame
 
@@ -30,7 +31,9 @@ class Jogo:
 
         self.teju = None
         self.teju_apareceu = False
+        self.teju_morto = False
         self.som_teju = None
+        self.canal_som_teju = None
 
         try:
             if not pygame.mixer.get_init():
@@ -80,6 +83,7 @@ class Jogo:
 
         self.teju = None
         self.teju_apareceu = False
+        self.teju_morto = False
 
     def atirar(self, pos_alvo):
         if self.jogador is None:
@@ -238,10 +242,11 @@ class Jogo:
             if tiros_no_teju:
                 self.teju.kill()
                 self.teju = None
+                self.teju_morto = True
 
                 if self.som_teju is not None:
                     pygame.mixer.music.stop()
-                    self.som_teju.play()
+                    self.canal_som_teju = self.som_teju.play()
 
         colisoes = pygame.sprite.groupcollide(
             self.inimigos,
